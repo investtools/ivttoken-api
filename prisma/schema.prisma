@@ -1,0 +1,199 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model Schools {
+    id                        String                   @id @default(uuid())
+    name                      String
+    state                     String
+    city                      String
+    zipCode                   String
+    address                   String
+    tokens                    String?
+    cnpj                      String                   @unique
+    inepCode                  String                   @unique
+    email                     String                   @unique
+    role                      Role
+    administrator             Administrators
+    internetServiceProviderId String?
+    schoolAdminId             String?
+    contracts                 Contracts[]
+    connectivityReport        ConnectivityReport[]
+    internetServiceProvider   InternetServiceProvider? @relation(fields: [internetServiceProviderId], references: [id])
+    schoolAdmin               SchoolAdmin?             @relation(fields: [schoolAdminId], references: [id])
+    createdAt                 DateTime                 @default(now())
+    updatedAt                 DateTime                 @updatedAt
+
+    @@index([cnpj])
+    @@index([email])
+    @@index([city])
+    @@index([state])
+    @@index([internetServiceProviderId])
+    @@index([schoolAdminId])
+}
+
+model SchoolAdmin {
+    id                 String               @id @default(uuid())
+    name               String
+    email              String               @unique
+    role               Role
+    schools            Schools[]
+    connectivityReport ConnectivityReport[]
+    createdAt          DateTime             @default(now())
+    updatedAt          DateTime             @updatedAt
+
+    @@index([email])
+}
+
+model ConnectivityReport {
+    id                     String            @id @default(uuid())
+    month                  Months
+    noInternetDays         Int
+    connectionQuality      ConnectionQuality
+    averageSpeed           Int
+    connectivityPercentage String
+    schoolId               String
+    schoolAdminId          String
+    schoolAdmin            SchoolAdmin       @relation(fields: [schoolAdminId], references: [id])
+    school                 Schools           @relation(fields: [schoolId], references: [id])
+    createdAt              DateTime          @default(now())
+    updatedAt              DateTime          @updatedAt
+}
+
+model Admin {
+    id              String            @id @default(uuid())
+    name            String
+    entity          Entity
+    email           String            @unique
+    role            Role
+    contracts       Contracts[]
+    authorizedUsers AuthorizedUsers[]
+    createdAt       DateTime          @default(now())
+    updatedAt       DateTime          @updatedAt
+
+    @@index([email])
+}
+
+model SuperUser {
+    id        String   @id @default(uuid())
+    name      String
+    email     String   @unique
+    role      Role
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([email])
+}
+
+model InternetServiceProvider {
+    id                String              @id @default(uuid())
+    name              String
+    cnpj              String              @unique
+    tokenAmount       String
+    unlockedTokens    String
+    lockedTokens      String
+    spentTokens       String
+    email             String              @unique
+    role              Role
+    schools           Schools[]
+    tokenTransactions TokenTransactions[]
+    contracts         Contracts[]
+    createdAt         DateTime            @default(now())
+    updatedAt         DateTime            @updatedAt
+
+    @@index([email])
+    @@index([cnpj])
+}
+
+model TokenTransactions {
+    id                        String                  @id @default(uuid())
+    benefit                   Benefits
+    benefitPrice              String
+    internetServiceProviderId String
+    internetServiceProvider   InternetServiceProvider @relation(fields: [internetServiceProviderId], references: [id])
+    createdAt                 DateTime                @default(now())
+    updatedAt                 DateTime                @updatedAt
+
+    @@index([internetServiceProviderId])
+}
+
+model Contracts {
+    id                        String                  @id @default(uuid())
+    schoolsId                 String
+    internetServiceProviderId String
+    status                    Status
+    adminId                   String?
+    admin                     Admin?                  @relation(fields: [adminId], references: [id])
+    internetServiceProvider   InternetServiceProvider @relation(fields: [internetServiceProviderId], references: [id])
+    school                    Schools                 @relation(fields: [schoolsId], references: [id])
+    createdAt                 DateTime                @default(now())
+    updatedAt                 DateTime                @updatedAt
+
+    @@index([internetServiceProviderId])
+    @@index([schoolsId])
+}
+
+model AuthorizedUsers {
+    id                String   @id @default(uuid())
+    email             String   @unique
+    role              Role
+    adminId           String
+    authorizedByAdmin Admin    @relation(fields: [adminId], references: [id])
+    createdAt         DateTime @default(now())
+    updatedAt         DateTime @updatedAt
+}
+
+enum ConnectionQuality {
+    LOW
+    MEDIUM
+    HIGH
+}
+
+enum Months {
+    JAN
+    FEB
+    MAR
+    APR
+    MAY
+    JUN
+    JUL
+    AUG
+    SEP
+    OCT
+    NOV
+    DEC
+}
+
+enum Entity {
+    GOVERNMENT
+    GIGA
+    UNICEF
+    INVESTTOOLS
+}
+
+enum Status {
+    PENDING
+    APPROVED
+    DENIED
+}
+
+enum Administrators {
+    MUNICIPALITY
+    STATE
+}
+
+enum Benefits {
+    TAX_BREAK
+}
+
+enum Role {
+    SCHOOL
+    ADMIN
+    ISP
+    SUPER_USER
+}

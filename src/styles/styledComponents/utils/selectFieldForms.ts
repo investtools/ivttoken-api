@@ -1,0 +1,1 @@
+export const selectField = "focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-ivtcolor  border border-ivtcolor p-2 rounded-lg text-gray-900 focus-visible:ring-offset-ivtcolor"
